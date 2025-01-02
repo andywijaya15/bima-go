@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -28,22 +30,42 @@ func main() {
 		log.Fatal(err)
 	}
 
-	bimaOrderTempQuery := db.Table("bima_order_temp").
-		Select("c_order_id, DATE(created) AS created").
-		Where("issotrx = ?", "N").
-		Where("created >= ?", "2024-01-01")
+	r := gin.Default()
+	r.Use(gzip.Gzip(gzip.BestSpeed))
 
-	bimaOrderLineTempQuery := db.Table("bima_orderline_temp").
-		Select("c_order_id, DATE(created) AS created").
-		Where("created >= ?", "2024-01-01")
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
 
-	var tempOrders []TempOrder
+	r.GET("/orders", func(c *gin.Context) {
+		bimaOrderTempQuery := db.Table("bima_order_temp").
+			Select("c_order_id, DATE(created) AS created").
+			Where("issotrx = ?", "N").
+			Where("created::date >= ?", "2024-01-01")
 
-	err = db.Raw("? UNION ?", bimaOrderTempQuery, bimaOrderLineTempQuery).Scan(&tempOrders).Error
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, order := range tempOrders {
-		fmt.Printf("COrderID: %d, Created: %s\n", order.COrderID, order.Created.Format("2006-01-02"))
+		// bimaOrderLineTempQuery := db.Table("bima_orderline_temp").
+		// 	Select("c_order_id, DATE(created) AS created").
+		// 	Where("created::date >= ?", "2024-01-01")
+
+		var tempOrders []TempOrder
+
+		// err = db.Raw("SELECT DISTINCT * FROM (? UNION ALL ?) tbl", bimaOrderTempQuery, bimaOrderLineTempQuery).Scan(&tempOrders).Error
+		err = db.Raw("SELECT DISTINCT * FROM (?) tbl", bimaOrderTempQuery).Scan(&tempOrders).Error
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{
+			"status":  http.StatusOK,
+			"message": "List Data",
+			"data":    tempOrders,
+			"count":   len(tempOrders),
+		})
+	})
+
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal("Error starting the server: ", err)
 	}
 }
