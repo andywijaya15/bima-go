@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	config.LoadEnv()
 	models.ConnectDatabase()
 	router := routes.SetupRouter()

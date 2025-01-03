@@ -9,7 +9,7 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
-	router.Use(gzip.Gzip(gzip.BestSpeed))
+	router.Use(gzip.Gzip(gzip.BestCompression))
 
 	v1 := router.Group("/v1")
 	{
