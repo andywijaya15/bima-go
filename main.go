@@ -12,10 +12,9 @@ import (
 func main() {
 
 	config.LoadEnv()
+	models.ConnectDatabase()
 	router := routes.SetupRouter()
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
-
-	models.ConnectDatabase()
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal("Error starting the server: ", err)
