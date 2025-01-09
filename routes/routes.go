@@ -16,6 +16,8 @@ func SetupRouter() *gin.Engine {
 		v1.GET("/get-changed-purchase-orders", controllers.GetChangedPurchaseOrders)
 		v1.GET("/get-changed-purchase-orders-concurrency", controllers.GetChangedPurchaseOrdersConcurrency)
 		v1.POST("/delete-purchase-order", controllers.DeletePurchaseOrder)
+
+		v1.GET("/get-auto-pr", controllers.GetAutoPr)
 	}
 
 	return router
