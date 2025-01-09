@@ -44,8 +44,6 @@ type OrderDetail struct {
 	IsMrpExists            bool
 }
 
-var DB = models.DB
-
 func GetAutoPr(c *gin.Context) {
 	lcDate := time.Now().AddDate(0, -2, 0)
 	lastUpdatePo := time.Now().AddDate(0, -2, 0)
