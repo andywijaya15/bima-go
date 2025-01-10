@@ -65,9 +65,6 @@ func GetAutoPr(c *gin.Context) {
 		var orderDetail OrderDetail
 		models.DB.ScanRows(rows, &orderDetail)
 		orderDetails = append(orderDetails, orderDetail)
-		if len(orderDetails) >= 100 {
-			break
-		}
 	}
 
 	c.JSON(http.StatusOK, orderDetails)
